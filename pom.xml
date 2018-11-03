@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.level11data</groupId>
+    <artifactId>simple-java-spark-app</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <org.apache.spark.version>2.3.1</org.apache.spark.version>
+        <com.google.guava.version>22.0</com.google.guava.version>
+        <com.level11data.simple.java.core.version>1.0-SNAPSHOT</com.level11data.simple.java.core.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.11</artifactId>
+            <version>${org.apache.spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.11</artifactId>
+            <version>${org.apache.spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${com.google.guava.version}</version>
+        </dependency>
+        <!-- Local "core" library that uses an earlier [shaded] version of guava -->
+        <dependency>
+            <groupId>com.level11data</groupId>
+            <artifactId>simple-java-spark-core</artifactId>
+            <version>${com.level11data.simple.java.core.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+    <plugins>
+        <!-- Regex Plugin to substitute underscore for period in version number -->
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <id>regex-properties</id>
+                    <goals>
+                        <goal>regex-properties</goal>
+                    </goals>
+                    <configuration>
+                        <regexPropertySettings>
+                            <regexPropertySetting>
+                                <name>com.google.guava.version.shaded</name>
+                                <value>${com.google.guava.version}</value>
+                                <regex>\.</regex>
+                                <replacement>_</replacement>
+                                <failIfNoMatch>true</failIfNoMatch>
+                            </regexPropertySetting>
+                        </regexPropertySettings>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        <!-- Maven Shade Plugin -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <artifactSet>
+                            <includes>
+                                <include>*</include>
+                            </includes>
+                        </artifactSet>
+                        <relocations>
+                            <relocation>
+                                <pattern>com.google.common</pattern>
+                                <shadedPattern>shaded.com_google_common_ver_${com.google.guava.version.shaded}</shadedPattern>
+                            </relocation>
+                        </relocations>
+                        <minimizeJar>true</minimizeJar>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
+    </plugins>
+    </build>
+
+</project>
